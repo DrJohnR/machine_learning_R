@@ -2,8 +2,6 @@
 ######## Random Forest Learning ########
 ########################################
 
-# this script closely follows: https://github.com/StatQuest/random_forest_demo/blob/master/random_forest_demo.R
-# see link above for details and useful comments
 
 ### load libraries ###
 library(ggplot2)
@@ -20,15 +18,15 @@ head(data)
 
 ### Process the data: 1) insert descriptive column names, 2) clean, type format, and factor the data ###
 
-# 1), explanations of these parameters available in github file above, not important here
-colnames(data) <- c("age","sex","cp","trestbps","chol","fbs","restecg","thalach","exang","oldpeak","slope","ca","thal","hd")
+# 1)
+colnames(data) <- c("age","sex","cp","trestbps","chol","fbs","restecg","thalach","exang","oldpeak","slope","ca","thal","hd") # details of parameters not important here
 factnames <- c("sex","cp","fbs","restecg","exang","slope","ca","thal","hd") # categorical data to be factor()ised later
 
 # 2)
 str(data) # check dataframe structure, notice some chr-type columns with numeric data
-data_char <- data[,sapply(data, is.character)] # extract these chr-type columns of data,
-# other methods discussed at https://stackoverflow.com/questions/5863097/selecting-only-numeric-columns-from-a-data-frame
-for(i in 1:ncol(data_char)){ # for each chr-type column, outputs message to console listing unique values
+data_char <- data[,sapply(data, is.character)]   # extract these chr-type columns of data,
+
+for(i in 1:ncol(data_char)){   # for each chr-type column, outputs message to console listing unique values
   message(paste0("Unique chr vals in col ", 
                "'", colnames(data_char)[i], "'", " : ", 
                "(", paste(unique(data_char[,i]), collapse = ", "), ")" 
@@ -36,13 +34,10 @@ for(i in 1:ncol(data_char)){ # for each chr-type column, outputs message to cons
         )
 } # notice that two of the columns of the original DF have missing data denoted by the character '?'
 
-#str(factor(data['ca'][,1]) )
-#levels(factor(data['ca'][,1]) )
-#levels(factor(data$ca) )
 
 ## clean the data: convert '?' -> NA, categorical integer data to 'M'/'F' etc.
 data[data == "?"] <- NA
-data$sex <- ifelse(test=data$sex == 0, yes="F", no="M") # equivalent to: data[data$sex == 1,]$sex <- "M" etc.
+data$sex <- ifelse(test=data$sex == 0, yes="F", no="M")   # equivalent to: data[data$sex == 1,]$sex <- "M" etc.
 data$hd <- ifelse(test=data$hd == 0, yes="Healthy", no="Unhealthy")
 
 
@@ -64,9 +59,9 @@ str(data)
 
 
 ################################################################################
-### Grow a Random Forest, and train on the data ###
+### Generate a Random Forest, and train on the data ###
 
-set.seed(16)
+set.seed(16) # set random seed to ensure results are reproducible
 data_imp <- rfImpute(hd ~ ., data = data, iter=6) # impute missing values (NAs) in the training data using proximities,
                                                   # here heart disease 'hd' is the parameter to be predicted by all other cols
 
@@ -74,6 +69,7 @@ data_imp <- rfImpute(hd ~ ., data = data, iter=6) # impute missing values (NAs) 
 ## 'mtry'--the number of variables to consider when growing a tree--to # of predictor variables divided by 3 
 ## (rounded down). If predicted parameter is a "factor" (categorical), then randomForest() will set 'mtry' to 
 ## the square root of # of variables (rounded down).
+
 RF <- randomForest(hd ~ ., data=data_imp,
                    #ntree = 500, # default value if this option unspecified
                    #mtry = 3, # default value if this option unspecified is explained below
@@ -92,8 +88,8 @@ oob.error.data <- data.frame(
 ggplot(data=oob.error.data, aes(x=Trees, y=Error)) + 
   geom_line(aes(color=Type)) + 
   ggtitle("Error convergence test")
-# ggsave("oob_error_rate_500_trees.pdf")
 #################################################
+
 
 ## Test for optimal number of tree node variables ('mtry') ##
 oob_values <- vector(length = 10) # create an empty vect to store the OOB values
@@ -113,11 +109,10 @@ RF_opt <- randomForest(hd ~ ., data=data_imp, ntree=500, proximity=TRUE,
 ## Create an MDS plot ##
 dist_matrix <- as.dist(1 - RF_opt$proximity) # generate a distance matrix from the proximity matrix
 
-mds <- cmdscale(dist_matrix, # cmdscale(): classical (metric) multidimensional scaling
-                eig=TRUE, # return the eigenvalues of the eigenvalue decomposition
-                x.ret=TRUE # return the double centred version of the dist matrix, not really necessary here
+mds <- cmdscale(dist_matrix,   # cmdscale(): classical (metric) multidimensional scaling
+                eig=TRUE,   # return the eigenvalues of the eigenvalue decomposition
+                x.ret=TRUE   # return the double centred version of the dist matrix
 ) 
-mds.var.per <- round(mds$eig/sum(mds$eig)*100, 1)
 
 mds.values <- mds$points
 mds.data <- data.frame(Object=rownames(mds.values), MDS1=mds.values[,1], MDS2=mds.values[,2],
@@ -128,7 +123,5 @@ ggplot(data=mds.data, aes(x=MDS1, y=MDS2, label=Object)) +
   theme_bw() +
   xlab(paste("MDS1 - ", mds.var.per[1], "%", sep="")) +
   ylab(paste("MDS2 - ", mds.var.per[2], "%", sep="")) +
-  ggtitle("MDS plot using (1 - Random Forest Proximities)")
-# ggsave(file="random_forest_mds_plot.pdf")
-
+  ggtitle("MDS plot using (1 - Random Forest Proximities) as distance matrix")
 
