@@ -1,2 +1,2 @@
-# machine_learning_tests
-Some simple scripts to practice implementing machine learning algorithms.  
+# machine_learning_R
+Some simple R scripts to practice implementing machine learning algorithms.  
