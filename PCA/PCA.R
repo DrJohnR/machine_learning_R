@@ -34,10 +34,10 @@ pca.data <- data.frame(Object=rownames(pca$x), PC1=pca$x[,1], PC2=pca$x[,2]) # c
 pca.data # dataset is formatted as a dataframe
 
 ggplot(data=pca.data, aes(x=PC1, y=PC2, label=Object)) +
- geom_text() + # plots object/record/sample labels rather than points
+ geom_text() +  # plots object/record/sample labels rather than points
  xlab(paste("PC1 - ", pca.var.per[1], "%", sep="")) +
  ylab(paste("PC2 - ", pca.var.per[2], "%", sep="")) +
- theme_bw() + # plot background theme
+ theme_bw() +  # plot background theme
  ggtitle("PCA Graph")
 
 # obtain names of top 10 parameters which contribute most to PC1.
