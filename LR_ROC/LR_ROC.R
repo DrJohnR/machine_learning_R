@@ -48,7 +48,7 @@ par(pty = "m")  # pty = "m" --> plot type = maximal (revert to default canvas)
 
 
 
-## attempt tp determine optimal threshold from the ROC data
+## attempt to determine optimal threshold from the ROC data ##
 roc_dat <- roc(cond, LC$fitted.values, legacy.axes=TRUE)  # store the ROC data in a parameter
 roc_df <- data.frame(  # construct a dataframe out of the (TPR, FPR, threshold) values
   tpr = roc_dat$sensitivities,   # TPR values
